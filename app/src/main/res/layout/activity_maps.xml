@@ -1,0 +1,26 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="com.example.rahmaniansyahdp.lokassiv3.MapsActivity"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Skor : 0"
+        android:textSize="18sp"
+        android:id="@+id/txtSkor"
+        android:gravity="right"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="10dp"
+        />
+
+</RelativeLayout>
