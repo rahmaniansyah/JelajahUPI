@@ -272,11 +272,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             az = event.values[2];
         }
 
-        txt_score.setText("x:"+ax+" \n"+ "y:"+ay+" \n"+ "z:"+az+" \n");
+        //txt_score.setText("x:"+ax+" \n"+ "y:"+ay+" \n"+ "z:"+az+" \n");
 
         if(az <= -1 && Qgik==1){
             showFpmipacQuest() ;
             Qgik = 2 ;
+            firstAction.dismiss();
         }
 
     }
