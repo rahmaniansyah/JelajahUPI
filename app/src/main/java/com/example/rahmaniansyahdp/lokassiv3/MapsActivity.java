@@ -18,6 +18,7 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,49 +44,50 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LocationListener, SensorEventListener {
 
     //deklarasi variabel
-    private static final int MY_PERMISSION_REQUEST = 99 ;
+    private static final int MY_PERMISSION_REQUEST = 99;
     private GoogleMap mMap;
-    private Marker mPosSekarang ;
-    GoogleApiClient mGoogleApiClient ;
-    LocationRequest mLocationRequest ;
-    private LocationManager locationManager ;
+    private Marker mPosSekarang;
+    GoogleApiClient mGoogleApiClient;
+    LocationRequest mLocationRequest;
+    private LocationManager locationManager;
 
     //deklarasi variabel database
-    Dbpostjelajahupi db ;
+    Dbpostjelajahupi db;
 
     //deklarasi layout Quest
-    Dialog firstAction ;
-    Dialog gikQuest ;
+    Dialog firstAction;
+    Dialog gikQuest;
 
     //deklarasi status quest
     int Qgik = 0;
+    int Qgymnas = 0;
 
     //deklarasi poin bermain
-    int score = 0 ;
-    TextView txt_score ;
+    int score = 0;
+    TextView txt_score;
 
     //deklarasi untuk sensor accelerometer
-    private SensorManager sm ;
-    private Sensor senAccel ;
+    private SensorManager sm;
+    private Sensor senAccel;
 
 
     //prosedur perubahan waktu lokasi
-    protected void createLocationRequest(){
+    protected void createLocationRequest() {
         mLocationRequest = new LocationRequest();
         //10 detik sekali minta lokasi
-        mLocationRequest.setInterval(10000) ;
+        mLocationRequest.setInterval(10000);
         //interval tidak lebih dari 5 detik
-        mLocationRequest.setFastestInterval(5000) ;
+        mLocationRequest.setFastestInterval(5000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
     //prosedur integrasi MAP
-    protected synchronized void buildGoogleApiClient(){
+    protected synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
-                .build() ;
+                .build();
     }
 
     @Override
@@ -103,23 +105,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //database
         //insert lokasi
         db = new Dbpostjelajahupi(getApplicationContext());
+
         db.open();
-        db.insertLokasiJelajahUpi("FPMIPA-C","107.589643","107.590130", "-6.860195","-6.860367") ;
+        db.insertLokasiJelajahUpi("FPMIPA-C", "107.589643", "107.590130", "-6.860195", "-6.860367");
+        db.insertLokasiJelajahUpi("GymnasiumUPI", "107.589623", "107.590433", "-6.859617", "-6.860134");
+
+
         db.close();
-        txt_score = (TextView) findViewById(R.id.txtSkor) ;
+
+        txt_score = (TextView) findViewById(R.id.txtSkor);
 
         //sensor akselerometer
-        sm = (SensorManager)getSystemService(getApplicationContext().SENSOR_SERVICE);
-        senAccel = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) ;
+        sm = (SensorManager) getSystemService(getApplicationContext().SENSOR_SERVICE);
+        senAccel = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
     }
 
     //prosedur untuk mengetahui lokasi
-    public void ambilLokasi(){
+    public void ambilLokasi() {
         //cek apakah sudah diijinkan oleh user, jika belum tampilkan dialog
         //Pastikan permission yang diminta cocok dengan manifest
         if (ActivityCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED){
+                != PackageManager.PERMISSION_GRANTED) {
             //belum ada ijin, tampilkan dialog
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
@@ -132,11 +139,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if(requestCode == MY_PERMISSION_REQUEST){
-            if(grantResults.length>0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+        if (requestCode == MY_PERMISSION_REQUEST) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 ambilLokasi();
-            }else{
+            } else {
                 //premission  tidak diberikan
                 AlertDialog ad = new AlertDialog.Builder(this).create();
                 ad.setMessage("Tidak mendapat ijin, tidak dapat mengambil lokasi");
@@ -152,14 +159,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        LatLng posSekarang = new LatLng(-6.860418, 107.589889) ;
+        LatLng posSekarang = new LatLng(-6.860418, 107.589889);
         mPosSekarang = mMap.addMarker(new
                 MarkerOptions().position(posSekarang).title("Posisi Sekarang"));
 
         //batas lokasi UPI
         //urutan harus kiri bawah, kanna atas kotak
         LatLngBounds UPI = new LatLngBounds(
-                new LatLng(-6.863273, 107.587212), new LatLng(-6.858025, 107.597839)) ;
+                new LatLng(-6.863273, 107.587212), new LatLng(-6.858025, 107.597839));
 
         //marker gedung ilkom
         //LatLng gedungIlkom = new LatLng(-6.860418, 107.589889) ;
@@ -167,11 +174,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //set Kamera sesuai batas UPI
 
-        int width = getResources().getDisplayMetrics().widthPixels ;
+        int width = getResources().getDisplayMetrics().widthPixels;
         int height = getResources().getDisplayMetrics().heightPixels;
-        int padding = (int) (width *0.12) ; //offset dari edges
+        int padding = (int) (width * 0.12); //offset dari edges
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(UPI, width, height, padding));
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mMap.setMyLocationEnabled(true);
+        mMap.setBuildingsEnabled(true);
 
         //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(gedungIlkom, 17));
     }
@@ -216,8 +235,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             showFirstAction(lokasi[0].nama_lokasi);
             Qgik = 1 ;
             Toast.makeText(MapsActivity.this,"Anda didalam gik",Toast.LENGTH_SHORT).show();
-        }else{
-            //Toast.makeText(MapsActivity.this,"Anda tidak di GIK",Toast.LENGTH_SHORT).show();
+        }
+
+
+        if(lokasi[1].down_s <= location.getLatitude() && location.getLatitude() <= lokasi[1].up_s && lokasi[1].left_e <= location.getLongitude() && location.getLongitude() <= lokasi[1].right_e && Qgymnas == 0 ){
+            showFirstAction(lokasi[1].nama_lokasi);
+            Qgymnas = 1 ;
+            Toast.makeText(MapsActivity.this,"Anda didalam Gymnasium UPI",Toast.LENGTH_SHORT).show();
         }
 
         db.close();
@@ -234,32 +258,67 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         textLokasi.setText("Hai, Sekarang kamu sedang berada di "+tempat);
     }
 
-    public void showFpmipacQuest(){
+    public void showFpmipacQuest(String keterangan){
         gikQuest = new Dialog(MapsActivity.this);
         gikQuest.setContentView(R.layout.fpmipac_layout);
-        gikQuest.setTitle("FPMIPA-C Quest");
         gikQuest.setCancelable(true);
         gikQuest.show();
+
         final RadioGroup radioGroup ;
-        radioGroup = (RadioGroup)gikQuest.findViewById(R.id.radiofpmipaC) ;
+        radioGroup = (RadioGroup)gikQuest.findViewById(R.id.radiofpmipaC) ;         //radio group
+        TextView textSoal = (TextView) gikQuest.findViewById(R.id.textView) ;       //text soal
+        Button buttonfpmipac = (Button) gikQuest.findViewById(R.id.btn_qfpmipac) ;  //tombol
+        //pilihan jawaban
+        RadioButton a, b, c, d ;
+        a = (RadioButton) gikQuest.findViewById(R.id.rd7) ;
+        b = (RadioButton) gikQuest.findViewById(R.id.rd8) ;
+        c = (RadioButton) gikQuest.findViewById(R.id.rd9) ;
+        d = (RadioButton) gikQuest.findViewById(R.id.rd10) ;
 
-        Button buttonfpmipac = (Button) gikQuest.findViewById(R.id.btn_qfpmipac) ;
-        buttonfpmipac.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int selectedId = radioGroup.getCheckedRadioButtonId();
+        if(keterangan.equals("FPMIPA-C")){
 
-                if(selectedId == R.id.rd7){
-                    Toast.makeText(MapsActivity.this,"Benar",Toast.LENGTH_SHORT).show();
-                    score = score + 100 ;
-                    txt_score.setText("Skor : "+score);
-                }else{
-                    Toast.makeText(MapsActivity.this,"Maaf jawaban kamu salah",Toast.LENGTH_SHORT).show();
-                    Qgik = 0 ;
+            buttonfpmipac.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int selectedId = radioGroup.getCheckedRadioButtonId();
+
+                    if(selectedId == R.id.rd7){
+                        Toast.makeText(MapsActivity.this,"Benar",Toast.LENGTH_SHORT).show();
+                        score = score + 100 ;
+                        txt_score.setText("Skor : "+score);
+                    }else{
+                        Toast.makeText(MapsActivity.this,"Maaf jawaban kamu salah",Toast.LENGTH_SHORT).show();
+                        Qgik = 0 ;
+                    }
+                    gikQuest.dismiss();
                 }
-                gikQuest.dismiss();
-            }
-        });
+            });
+
+        }else if(keterangan.equals("GYMNASIUM")){
+            textSoal.setText("Menurut tradisi yang ada di UPI biasa digunakan untuk apakah gedung Gymnasium UPI?");
+            a.setText("Wisuda Mahasiswa UPI");
+            b.setText("Studio Musik");
+            c.setText("Kolam Renang");
+            d.setText("Konser band");
+            buttonfpmipac.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int selectedId = radioGroup.getCheckedRadioButtonId();
+
+                    if(selectedId == R.id.rd7){
+                        Toast.makeText(MapsActivity.this,"Benar",Toast.LENGTH_SHORT).show();
+                        score = score + 100 ;
+                        txt_score.setText("Skor : "+score);
+                    }else{
+                        Toast.makeText(MapsActivity.this,"Maaf jawaban kamu salah",Toast.LENGTH_SHORT).show();
+                        Qgymnas = 0 ;
+                    }
+                    gikQuest.dismiss();
+                }
+            });
+        }
+
+
     }
 
     @Override
@@ -272,11 +331,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             az = event.values[2];
         }
 
-        //txt_score.setText("x:"+ax+" \n"+ "y:"+ay+" \n"+ "z:"+az+" \n");
-
         if(az <= -1 && Qgik==1){
-            showFpmipacQuest() ;
+            showFpmipacQuest("FPMIPA-C") ;
             Qgik = 2 ;
+            firstAction.dismiss();
+        }
+
+        if(az <= -1 && Qgymnas==1){
+            showFpmipacQuest("GYMNASIUM") ;
+            Qgymnas = 2 ;
             firstAction.dismiss();
         }
 

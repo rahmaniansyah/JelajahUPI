@@ -14,7 +14,7 @@ public class OpenHelper extends SQLiteOpenHelper {
     public static final int DATABASE_VERSION = 1 ;
     public static final String DATABASE_NAME = "db_jelajahupi" ;
     public static final String TABLE_CREATE =
-            "CREATE TABLE POSTJELAJAHUPI (ID INTEGER PRIMARY KEY AUTOINCREMENT, NM_LOKASI TEXT, LEFT_S TEXT, LEFT_E TEXT, UP_S TEXT, UP_E TEXT, RIGHT_S TEXT, RIGHT_E TEXT, DOWN_S TEXT, DOWN_E TEXT)" ;
+            "CREATE TABLE POSTJELAJAHUPI (ID INTEGER PRIMARY KEY AUTOINCREMENT, NM_LOKASI TEXT, LEFT_E TEXT, RIGHT_E TEXT,UP_S TEXT, DOWN_S TEXT)" ;
 
     public OpenHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -28,6 +28,6 @@ public class OpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXITS POSTJELAJAHUPI");
+        db.execSQL("DROP TABLE IF EXISTS POSTJELAJAHUPI");
     }
 }

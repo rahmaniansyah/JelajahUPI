@@ -18,8 +18,7 @@
         android:text="Skor : 0"
         android:textSize="18sp"
         android:id="@+id/txtSkor"
-        android:gravity="right"
-        android:layout_marginRight="20dp"
+        android:gravity="center"
         android:layout_marginTop="10dp"
         />
 
