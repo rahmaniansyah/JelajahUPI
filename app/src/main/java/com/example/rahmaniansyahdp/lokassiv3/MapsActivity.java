@@ -192,6 +192,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setMyLocationEnabled(true);
         mMap.setBuildingsEnabled(true);
 
+
         //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(gedungIlkom, 17));
     }
 
