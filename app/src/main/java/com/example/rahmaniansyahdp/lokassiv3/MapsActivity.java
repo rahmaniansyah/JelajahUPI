@@ -113,13 +113,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         db.open();
         db.insertLokasiJelajahUpi("FPMIPA-C", "107.589643", "107.590130", "-6.860195", "-6.860367");
         db.insertLokasiJelajahUpi("GymnasiumUPI", "107.589623", "107.590433", "-6.859617", "-6.860134");
-        db.insertLokasiJelajahUpi("FPOK","107.589715","107.590400","-6.861074",,"-6.860645");
+        db.insertLokasiJelajahUpi("FPOK","107.589715","107.590400","-6.861074","-6.860645");
         db.insertLokasiJelajahUpi("FPMIPA-A","107.589520","107.590346","-6.862019","-6.861271" );
         db.insertLokasiJelajahUpi("Stadion UPI","107.588352","107.588469","-6.859927","-6.858890,");
         db.insertLokasiJelajahUpi("Gelanggang Renang","107.587651","107.588153","-6.860020","-6.859115");
         db.insertLokasiJelajahUpi("Isola Resort","107.589448","107.589974","-6.862539,","-6.862187");
         db.insertLokasiJelajahUpi("Balai Bahasa","107.591296","107.591530","-6.860672","-6.860425");
         db.insertLokasiJelajahUpi("Perpustakaan","107.591425","107.592006","-6.861023","-6.861093");
+        db.insertLokasiJelajahUpi("University Centre","107.592206","107.592525","-6.860931","-6.860494");
+        db.insertLokasiJelajahUpi("Masjid Al Furqon","107.593183","107.593748","-6.863319","-6.862786");
 
 
         db.close();
