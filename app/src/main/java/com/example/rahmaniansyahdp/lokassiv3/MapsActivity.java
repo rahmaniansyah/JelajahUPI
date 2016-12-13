@@ -15,6 +15,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -57,8 +59,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //deklarasi layout Quest
     Dialog firstAction;
     Dialog gikQuest;
+    Dialog statlokasi ;
 
     //deklarasi status quest
+    int startU = 0 ;
     int Qgik = 0;
     int Qgymnas = 0;
 
@@ -180,13 +184,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(UPI, width, height, padding));
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return;
         }
         mMap.setMyLocationEnabled(true);
@@ -229,6 +226,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mPosSekarang.setPosition(new
                 LatLng(location.getLatitude(),location.getLongitude()));
 
+        if(-6.863534 <= location.getLatitude() && location.getLatitude() <= -6.858805 && 107.587450 <= location.getLongitude() && location.getLongitude() <= 107.594746 && startU == 1){
+            welcome_layout(0);
+            startU = 2 ;
+        }else if(startU==0){
+            welcome_layout(1);
+            startU = 1 ;
+        }
+
         db.open();
         Dbpostjelajahupi.Lokasi lokasi[] = db.getAllLokasi();
 
@@ -249,6 +254,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    //prosedur menampilkan layout posisi pemain di UPI
     public void showFirstAction(String tempat){
         firstAction = new Dialog(MapsActivity.this) ;
         firstAction.setContentView(R.layout.first_action);
@@ -361,5 +367,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onPause(){
         super.onPause();
         sm.unregisterListener(this);
+    }
+
+    //prosedur layout untuk status keberadaan user
+    public void welcome_layout(int stlokasi){
+        statlokasi = new Dialog(MapsActivity.this) ;
+        statlokasi.setContentView(R.layout.welocome_layout);
+        statlokasi.setCancelable(true);
+        statlokasi.show();
+
+        TextView txt_stat1 = (TextView) statlokasi.findViewById(R.id.textView11) ;
+        TextView txt_stat2 = (TextView) statlokasi.findViewById(R.id.textView12) ;
+
+        txt_stat2.setClickable(true);
+        txt_stat2.setMovementMethod(LinkMovementMethod.getInstance());
+        String lokasiupi = "<html>Belum tahu dimana UPI? silahkan klik " +
+                "<a href = 'https://www.google.co.id/maps/place/Indonesia+University+of+Education/@-6.8610792,107.5921392,17z/data=!3m1!4b1!4m5!3m4!1s0x2e68e6b943c2c5ff:0xee36226510a79e76!8m2!3d-6.8610845!4d107.5943279?hl=en'> disini </a>" +
+                "</html>" ;
+
+        if(stlokasi == 1){
+            txt_stat2.setText(Html.fromHtml(lokasiupi));
+        }else {
+            txt_stat1.setText("Anda berada di lingkungan Universitas Pendidikan Indonesia Bandung");
+            txt_stat2.setText("Ayo bermain sekarang!");
+        }
     }
 }
