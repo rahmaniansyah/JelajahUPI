@@ -2,6 +2,7 @@ package com.example.rahmaniansyahdp.lokassiv3;
 
 import android.*;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -9,12 +10,16 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
@@ -40,10 +45,25 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+public class MapsActivity extends FragmentActivity , AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener, SensorEventListener {
+
+    TextView tvAmbil;
 
     //deklarasi variabel
     private static final int MY_PERMISSION_REQUEST = 99;
@@ -103,6 +123,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        tvAmbil = (TextView) findViewById(R.id.tvAmbil);
+
         buildGoogleApiClient();
         createLocationRequest();
 
@@ -150,7 +172,84 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
     }
 
-    @Override
+    //prosedur untuk mengambil data
+    private class AmbilData extends AsyncTask<String, Integer, String> {
+        protected String doInBackground(String... strUrl) {
+            Log.v("yw", "mulai ambil data");
+            String hasil="";
+            //ambil data dari internet
+            InputStream inStream = null;
+            int len = 500; //buffer
+            try {
+                URL url = new URL(strUrl[0]);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                //timeout
+                conn.setReadTimeout(10000 /* milliseconds */);
+                conn.setConnectTimeout(15000 /* milliseconds */);
+
+
+                conn.setRequestMethod("GET");
+                conn.connect();
+                int response = conn.getResponseCode();
+                inStream = conn.getInputStream();  //ambil stream data
+
+
+                //konversi stream ke string
+                Reader r = null;
+                r = new InputStreamReader(inStream, "UTF-8");
+                BufferedReader bfr  = new BufferedReader(r);
+                String s;
+                StringBuilder sb = new StringBuilder();
+                s = bfr.readLine();
+                while (s != null) {
+                    sb.append(s);
+                    s = bfr.readLine(); //baca per baris
+                }
+
+                hasil = sb.toString().trim();
+                /*char[] buffer = new char[len];
+                r.read(buffer);
+                hasil  =  new String(buffer);*/
+
+                JSONObject jsonObj = new JSONObject(hasil);
+                String kind = jsonObj.getString("kind");
+                JSONObject jo = jsonObj.getJSONObject("volumeInfo");
+                JSONArray ja = jo.getJSONArray("industryIdentifiers");
+
+                //loop jsonarray
+                for (int i = 0; i < ja.length(); i++) {
+                    /*JSONObject jo2 = ja.getJSONObject(i);
+                    Log.v("yw", "jo2:" + jo2.getString("type"));*/
+                    String id = jo.getString("id");
+                    String nama = jo.getString("nama");
+                    String latitude = jo.getString("latitude");
+                    String longitude = jo.getString("longitude");
+                    String skor = jo.getString("skor")
+                    Log.v("yw", "id: " + id + " | nama: " + nama + " | latitude: " + latitude + " | longitude: " + longitude " | skor: " + skor );
+                    hasil = "id: " + id + "\nnama: " + nama + "\nlatitude: " + latitude + "\nlongitude: " + longitude + "\nskor: " + skor ;
+                }
+
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } finally {
+                if (inStream != null) {
+                    try {
+                        inStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return hasil;
+        }
+
+
+        @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == MY_PERMISSION_REQUEST) {
             if (grantResults.length > 0
@@ -232,12 +331,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onLocationChanged(Location location) {
         //Toast.makeText(MapsActivity.this,"Update data",Toast.LENGTH_SHORT).show();
-        mPosSekarang.setPosition(new
-                LatLng(location.getLatitude(),location.getLongitude()));
+        mPosSekarang.setPosition(new LatLng(location.getLatitude(),location.getLongitude()));
+
+
 
         if(-6.863534 <= location.getLatitude() && location.getLatitude() <= -6.858805 && 107.587450 <= location.getLongitude() && location.getLongitude() <= 107.594746 && startU == 1){
             welcome_layout(0);
             startU = 2 ;
+            ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+            if (networkInfo != null && networkInfo.isConnected()) {
+                new AmbilData().execute("http://jelajahupi.pe.hu/getAllLokasi.php"); //url jadi parameter
+            } else {
+                // tampilkan error
+                Toast t = Toast.makeText( getApplicationContext(), "Tidak ada koneksi!",Toast.LENGTH_LONG);
+                t.show();
+            }
         }else if(startU==0){
             welcome_layout(1);
             startU = 1 ;
