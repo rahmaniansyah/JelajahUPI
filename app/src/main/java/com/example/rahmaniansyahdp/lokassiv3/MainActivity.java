@@ -16,7 +16,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void klikButton(View v){
-        intent = new Intent(this, MapsActivity.class) ;
+        intent = new Intent(this, Main2Activity.class) ;
         startActivity(intent);
         finish();
     }

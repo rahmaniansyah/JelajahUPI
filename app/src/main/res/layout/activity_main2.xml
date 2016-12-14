@@ -38,6 +38,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="19sp"
+        android:onClick="nextPage"
         android:id="@+id/button"
         android:layout_below="@+id/editText"
         android:layout_alignParentEnd="true" />

@@ -2,6 +2,7 @@ package com.example.rahmaniansyahdp.lokassiv3;
 
 import android.*;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -9,6 +10,9 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -39,6 +43,19 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -74,6 +91,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private SensorManager sm;
     private Sensor senAccel;
 
+    //------------------------------------------------------------------------------------
 
     //prosedur perubahan waktu lokasi
     protected void createLocationRequest() {
@@ -92,6 +110,76 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
+    }
+
+    private class AmbilData extends AsyncTask<String,Integer,String>{
+
+        @Override
+        protected String doInBackground(String... strUrl) {
+            String hasil = "" ;
+            //ambil data dari internet
+            InputStream inStream = null ;
+            int len = 500; //buffer
+
+            try{
+                URL url = new URL(strUrl[0]);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection() ;
+                //timeout
+                conn.setReadTimeout(10000 /*milliseconds*/);
+                conn.setConnectTimeout(15000 /*milliseconds*/);
+
+                conn.setRequestMethod("GET");
+                conn.connect();
+                int response = conn.getResponseCode();
+                inStream = conn.getInputStream();   //ambil stream data
+
+                //konverensi stream ke string
+                Reader r = null ;
+                r = new InputStreamReader(inStream, "UTF-8") ;
+
+                BufferedReader bfr = new BufferedReader(r);
+                String s ;
+                StringBuilder sb = new StringBuilder();
+                s = bfr.readLine();
+                while (s != null){
+                    sb.append(s);
+                    s = bfr.readLine(); //baca perbaris
+                }
+                hasil = sb.toString().trim();
+
+                JSONArray jsonArray = new JSONArray(hasil) ;
+
+                //loop jsonarray
+                for(int i=0 ; i<jsonArray.length(); i++){
+                    JSONObject jsonObj = jsonArray.getJSONObject(i);
+                    String nama = jsonObj.getString("nama");
+                    String latitude = jsonObj.getString("latitude");
+                    String longtitude = jsonObj.getString("longtitude");
+                    hasil = nama ;
+                }
+
+            }catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } finally {
+                if(inStream!=null){
+                    try {
+                        inStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            return hasil;
+        }
+        TextView textNama = (TextView) findViewById(R.id.txtNama) ;
+        protected void onPostExecute(String result){
+            textNama.setText(result);
+        }
     }
 
     @Override
@@ -115,13 +203,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         db.insertLokasiJelajahUpi("GymnasiumUPI", "107.589623", "107.590433", "-6.859617", "-6.860134");
         db.insertLokasiJelajahUpi("FPOK","107.589715","107.590400","-6.861074","-6.860645");
         db.insertLokasiJelajahUpi("FPMIPA-A","107.589520","107.590346","-6.862019","-6.861271" );
-        db.insertLokasiJelajahUpi("Stadion UPI","107.588352","107.588469","-6.859927","-6.858890,");
+        //db.insertLokasiJelajahUpi("Stadion UPI","107.588352","107.588469","-6.859927","-6.858890");
         db.insertLokasiJelajahUpi("Gelanggang Renang","107.587651","107.588153","-6.860020","-6.859115");
-        db.insertLokasiJelajahUpi("Isola Resort","107.589448","107.589974","-6.862539,","-6.862187");
-        db.insertLokasiJelajahUpi("Balai Bahasa","107.591296","107.591530","-6.860672","-6.860425");
+        //db.insertLokasiJelajahUpi("Isola Resort","107.589448","107.589974","-6.862539,","-6.862187");
+        //db.insertLokasiJelajahUpi("Balai Bahasa","107.591296","107.591530","-6.860672","-6.860425");
         db.insertLokasiJelajahUpi("Perpustakaan","107.591425","107.592006","-6.861023","-6.861093");
-        db.insertLokasiJelajahUpi("University Centre","107.592206","107.592525","-6.860931","-6.860494");
-        db.insertLokasiJelajahUpi("Masjid Al Furqon","107.593183","107.593748","-6.863319","-6.862786");
+        //db.insertLokasiJelajahUpi("University Centre","107.592206","107.592525","-6.860931","-6.860494");
+        //db.insertLokasiJelajahUpi("Masjid Al Furqon","107.593183","107.593748","-6.863319","-6.862786");
 
 
         db.close();
@@ -131,6 +219,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //sensor akselerometer
         sm = (SensorManager) getSystemService(getApplicationContext().SENSOR_SERVICE);
         senAccel = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+        //Jason
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE) ;
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        if(networkInfo != null && networkInfo.isConnected()){
+            new AmbilData().execute("http://jelajahupi.pe.hu/getAllLokasi.php") ; //url yang jadi parameter
+        }else{
+            Toast t = Toast.makeText(getApplicationContext(), "Tidak ada koneksi!", Toast.LENGTH_LONG) ;
+            t.show();
+        }
     }
 
     //prosedur untuk mengetahui lokasi
@@ -175,17 +273,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng posSekarang = new LatLng(-6.860418, 107.589889);
         mPosSekarang = mMap.addMarker(new
                 MarkerOptions().position(posSekarang).title("Posisi Sekarang"));
-
         //batas lokasi UPI
         //urutan harus kiri bawah, kanna atas kotak
         LatLngBounds UPI = new LatLngBounds(
                 new LatLng(-6.863273, 107.587212), new LatLng(-6.858025, 107.597839));
-
-        //marker gedung ilkom
-        //LatLng gedungIlkom = new LatLng(-6.860418, 107.589889) ;
-        //mMap.addMarker(new MarkerOptions().position(gedungIlkom).title("Marker di GIK")) ;
-
-        //set Kamera sesuai batas UPI
 
         int width = getResources().getDisplayMetrics().widthPixels;
         int height = getResources().getDisplayMetrics().heightPixels;
@@ -234,6 +325,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Toast.makeText(MapsActivity.this,"Update data",Toast.LENGTH_SHORT).show();
         mPosSekarang.setPosition(new
                 LatLng(location.getLatitude(),location.getLongitude()));
+
 
         if(-6.863534 <= location.getLatitude() && location.getLatitude() <= -6.858805 && 107.587450 <= location.getLongitude() && location.getLongitude() <= 107.594746 && startU == 1){
             welcome_layout(0);
