@@ -77,6 +77,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Dialog firstAction;
     Dialog gikQuest;
     Dialog statlokasi ;
+    AlertDialog albenar ;
+    AlertDialog alsalah ;
 
     //deklarasi status quest
     int startU = 0 ;
@@ -194,6 +196,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         buildGoogleApiClient();
         createLocationRequest();
 
+        albenar = new AlertDialog.Builder(this).create();
+        alsalah = new AlertDialog.Builder(this).create();
         //database
         //insert lokasi
         db = new Dbpostjelajahupi(getApplicationContext());
@@ -394,20 +398,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         Toast.makeText(MapsActivity.this,"Benar",Toast.LENGTH_SHORT).show();
                         score = score + 100 ;
                         txt_score.setText("Skor : "+score);
+                        albenar.setMessage("Jawaban kamu benar!"+"\n"+"Poin kamu sekarang "+score);
+                        albenar.show();
                     }else{
                         Toast.makeText(MapsActivity.this,"Maaf jawaban kamu salah",Toast.LENGTH_SHORT).show();
                         Qgik = 0 ;
+                        alsalah.setMessage("Yah, jawaban kamu masih salah :("+"\n"+"Ayo coba lagi!");
+                        alsalah.show();
                     }
                     gikQuest.dismiss();
                 }
             });
 
         }else if(keterangan.equals("GYMNASIUM")){
-            textSoal.setText("Menurut tradisi yang ada di UPI biasa digunakan untuk apakah gedung Gymnasium UPI?");
-            a.setText("Wisuda Mahasiswa UPI");
-            b.setText("Studio Musik");
-            c.setText("Kolam Renang");
-            d.setText("Konser band");
+            textSoal.setText("Terdiri dari berapa lantaikah Gymnasium UPI?");
+            a.setText("2");
+            b.setText("3");
+            c.setText("4");
+            d.setText("5");
             buttonfpmipac.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -417,9 +425,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         Toast.makeText(MapsActivity.this,"Benar",Toast.LENGTH_SHORT).show();
                         score = score + 100 ;
                         txt_score.setText("Skor : "+score);
+                        albenar.setMessage("Jawaban kamu benar!"+"\n"+"Poin kamu sekarang "+score);
+                        albenar.show();
                     }else{
                         Toast.makeText(MapsActivity.this,"Maaf jawaban kamu salah",Toast.LENGTH_SHORT).show();
                         Qgymnas = 0 ;
+                        alsalah.setMessage("Yah, jawaban kamu masih salah :("+"\n"+"Ayo coba lagi!");
+                        alsalah.show();
                     }
                     gikQuest.dismiss();
                 }
