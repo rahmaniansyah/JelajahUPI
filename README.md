@@ -5,4 +5,4 @@ Deskripsi Permainan :
   - Ketika pengguna memasuki salah satu gedung di UPI, maka akan muncul sebuah pertanyaan mengenai kondisi atau informasi umum seputar gedung tsb.
 
 Link Download APK :
-...
+https://drive.google.com/open?id=0B3QAiib6ux9RRkU0dkRkdDBTM2M
